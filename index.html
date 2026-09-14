@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sadbodh — Deep learning, measured</title>
+<meta name="description" content="Controlled, reproducible studies of deep learning systems: how fast they really run, what the speed costs in accuracy, and where the time actually goes.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+<style>
+/* ── tokens ─────────────────────────────────────────────────────────── */
+:root{
+  --bg:#fbfbfa; --surface:#ffffff; --surface-2:#f4f6f5;
+  --ink:#141d1c; --muted:#5a6a68; --faint:#8b9a98;
+  --line:#e3e7e6; --line-strong:#cfd6d5;
+  --accent:#00786d; --accent-ink:#00594f; --accent-wash:#e6f3f1;
+  --shadow:0 1px 2px rgba(16,32,30,.05), 0 8px 24px -12px rgba(16,32,30,.18);
+  --shadow-lift:0 1px 2px rgba(16,32,30,.06), 0 18px 40px -18px rgba(16,32,30,.28);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1312; --surface:#141c1b; --surface-2:#18211f;
+    --ink:#e7edec; --muted:#93a4a1; --faint:#6d7f7c;
+    --line:#232f2d; --line-strong:#31403d;
+    --accent:#35d6c0; --accent-ink:#6fe6d4; --accent-wash:#122623;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    --shadow-lift:0 1px 2px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.75);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1312; --surface:#141c1b; --surface-2:#18211f;
+  --ink:#e7edec; --muted:#93a4a1; --faint:#6d7f7c;
+  --line:#232f2d; --line-strong:#31403d;
+  --accent:#35d6c0; --accent-ink:#6fe6d4; --accent-wash:#122623;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  --shadow-lift:0 1px 2px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.75);
+}
+
+/* ── base ───────────────────────────────────────────────────────────── */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+a{color:inherit}
+img{max-width:100%}
+
+.wrap{max-width:1080px; margin:0 auto; padding-inline:24px}
+
+/* ── top bar ────────────────────────────────────────────────────────── */
+.topbar{
+  border-bottom:1px solid var(--line); background:var(--surface);
+  position:sticky; top:0; z-index:10;
+  backdrop-filter:saturate(1.4) blur(8px);
+}
+.topbar .wrap{display:flex; align-items:center; gap:16px; padding-block:14px}
+.brand{
+  font-family:var(--mono); font-size:13px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; text-decoration:none;
+  display:flex; align-items:center; gap:9px;
+}
+.brand .mark{color:var(--accent); font-size:15px}
+.topbar nav{margin-left:auto; display:flex; align-items:center; gap:6px}
+.topbar nav a, .tbtn{
+  font-family:var(--mono); font-size:12.5px; letter-spacing:.04em;
+  color:var(--muted); text-decoration:none;
+  padding:7px 11px; border-radius:7px; border:1px solid transparent;
+  background:none; cursor:pointer; font-weight:500;
+}
+.topbar nav a:hover, .tbtn:hover{color:var(--ink); background:var(--surface-2); border-color:var(--line)}
+
+/* ── hero ───────────────────────────────────────────────────────────── */
+.hero{padding-block:72px 12px; border-bottom:1px solid var(--line)}
+.eyebrow{
+  font-family:var(--mono); font-size:12px; font-weight:600;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--accent);
+  margin:0 0 20px; display:flex; align-items:center; gap:11px;
+}
+.eyebrow::after{content:""; flex:1; max-width:120px; height:1px; background:var(--line-strong)}
+h1{
+  margin:0 0 22px; font-size:clamp(2.1rem, 5.4vw, 3.5rem);
+  line-height:1.08; letter-spacing:-.03em; font-weight:660;
+}
+h1 em{font-style:normal; color:var(--accent)}
+.lede{margin:0; max-width:64ch; font-size:clamp(1.02rem,1.9vw,1.19rem); color:var(--muted); line-height:1.62}
+.lede strong{color:var(--ink); font-weight:600}
+.hero-meta{
+  display:flex; flex-wrap:wrap; gap:10px 28px; margin:34px 0 60px;
+  font-family:var(--mono); font-size:12.5px; color:var(--faint);
+}
+.hero-meta span{display:flex; align-items:center; gap:8px}
+.hero-meta span::before{content:""; width:5px; height:5px; border-radius:50%; background:var(--accent); flex:none}
+
+/* ── sections ───────────────────────────────────────────────────────── */
+.section{padding-block:60px}
+.section-head{display:flex; align-items:baseline; gap:16px; margin-bottom:30px; flex-wrap:wrap}
+h2{margin:0; font-size:1.06rem; font-weight:660; letter-spacing:-.005em}
+.section-head .count{font-family:var(--mono); font-size:12px; color:var(--faint); letter-spacing:.06em}
+.section-head .rule{flex:1; min-width:40px; height:1px; background:var(--line); align-self:center}
+
+.grid{display:grid; gap:20px; grid-template-columns:repeat(auto-fill, minmax(320px,1fr))}
+
+/* ── cards ──────────────────────────────────────────────────────────── */
+.card{
+  display:flex; flex-direction:column; position:relative;
+  background:var(--surface); border:1px solid var(--line); border-radius:14px;
+  padding:26px 26px 22px; text-decoration:none; box-shadow:var(--shadow);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.card.live{grid-column:span 2}
+@media (max-width:719px){ .card.live{grid-column:span 1} }
+a.card:hover{transform:translateY(-3px); box-shadow:var(--shadow-lift); border-color:var(--accent)}
+a.card:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+
+.pill{
+  align-self:flex-start; font-family:var(--mono); font-size:10.5px; font-weight:600;
+  letter-spacing:.13em; text-transform:uppercase; padding:4px 9px; border-radius:999px;
+  display:flex; align-items:center; gap:6px; margin-bottom:18px;
+}
+.pill.ok{color:var(--accent-ink); background:var(--accent-wash); border:1px solid var(--accent-wash)}
+:root[data-theme="dark"] .pill.ok{border-color:#1d3b36}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .pill.ok{border-color:#1d3b36} }
+.pill.ok .dot{width:6px; height:6px; border-radius:50%; background:var(--accent)}
+.pill.soon{color:var(--faint); background:var(--surface-2); border:1px solid var(--line)}
+
+.card h3{margin:0 0 10px; font-size:1.3rem; line-height:1.24; letter-spacing:-.018em; font-weight:650}
+.card .sub{
+  margin:0 0 16px; font-family:var(--mono); font-size:12px; color:var(--faint);
+  letter-spacing:.02em;
+}
+.card p{margin:0 0 18px; color:var(--muted); font-size:.95rem; line-height:1.6}
+.card p.finding{color:var(--ink); border-left:2px solid var(--accent); padding-left:14px; font-size:.93rem}
+
+.stats{
+  display:flex; flex-wrap:wrap; gap:26px; padding:18px 0;
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-bottom:18px;
+}
+.stat .n{font-family:var(--mono); font-size:1.42rem; font-weight:600; letter-spacing:-.02em; line-height:1.1; color:var(--ink)}
+.stat .n small{font-size:.62em; font-weight:500; color:var(--muted); margin-left:2px}
+.stat .l{font-size:11.5px; color:var(--faint); margin-top:5px; letter-spacing:.02em}
+
+.tags{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:20px}
+.tag{
+  font-family:var(--mono); font-size:11px; color:var(--muted);
+  border:1px solid var(--line); border-radius:6px; padding:3.5px 8px; background:var(--surface-2);
+}
+.go{
+  margin-top:auto; font-family:var(--mono); font-size:12.5px; font-weight:600;
+  color:var(--accent); letter-spacing:.03em; display:flex; align-items:center; gap:8px;
+}
+.go .arrow{transition:transform .18s ease}
+a.card:hover .go .arrow{transform:translateX(4px)}
+
+.card.placeholder{border-style:dashed; box-shadow:none; background:transparent}
+.card.placeholder h3{color:var(--muted); font-size:1.1rem}
+.card.placeholder p{font-size:.9rem; color:var(--faint); margin-bottom:0}
+
+/* ── principles ─────────────────────────────────────────────────────── */
+.principles{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.principle{border-top:2px solid var(--accent); padding-top:16px}
+.principle h4{margin:0 0 8px; font-size:.97rem; font-weight:640; letter-spacing:-.01em}
+.principle p{margin:0; font-size:.9rem; color:var(--muted); line-height:1.58}
+
+/* ── footer ─────────────────────────────────────────────────────────── */
+footer{border-top:1px solid var(--line); padding-block:34px 44px; margin-top:20px}
+footer .wrap{display:flex; flex-wrap:wrap; gap:14px 28px; align-items:center;
+  font-family:var(--mono); font-size:12px; color:var(--faint)}
+footer a{color:var(--muted); text-decoration:none; border-bottom:1px solid var(--line)}
+footer a:hover{color:var(--accent); border-color:var(--accent)}
+footer .spacer{flex:1; min-width:20px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/"><span class="mark">◈</span> Sadbodh</a>
+    <nav>
+      <a href="#topics">Topics</a>
+      <a href="https://github.com/sadbodhs" rel="noopener">GitHub</a>
+      <button class="tbtn" id="theme" type="button" aria-label="Toggle colour theme">Theme</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Deep learning systems</p>
+      <h1>Measured, not<br><em>asserted.</em></h1>
+      <p class="lede">
+        Controlled studies of how deep learning systems actually behave under load — where the
+        time goes, what the speed costs in accuracy, and which of the obvious answers turn out
+        to be wrong. <strong>Every number here came off a real machine</strong>, with the harness
+        and the raw results in the open.
+      </p>
+      <div class="hero-meta">
+        <span>One GPU, one harness, controlled arms</span>
+        <span>Reproducible in Docker</span>
+        <span>Findings published with the code</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="topics">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Topics</h2>
+        <span class="count">01 live · 03 in preparation</span>
+        <span class="rule"></span>
+      </div>
+
+      <div class="grid">
+
+        <a class="card live" href="https://sadbodhs.github.io/computer_vision_optimization/" rel="noopener">
+          <span class="pill ok"><span class="dot"></span> Live</span>
+          <h3>Computer Vision — Inference Serving</h3>
+          <p class="sub">Triton vs TensorRT vs DeepStream · RTX 3090 · YOLOv8s FP16</p>
+          <p>
+            For the same detection model on the same GPU, which serving pipeline processes a
+            frame fastest — and which delivers the most frames per second? Seven pipelines,
+            one identical ONNX file, swept over concurrency 1–16.
+          </p>
+          <p class="finding">
+            The plumbing costs more than the model. One flow goes from 222 to 654 fps with no
+            change to the server at all — only to the client.
+          </p>
+          <div class="stats">
+            <div class="stat"><div class="n">1.23<small>ms</small></div><div class="l">Lowest p50 latency</div></div>
+            <div class="stat"><div class="n">1665<small>fps</small></div><div class="l">Peak throughput</div></div>
+            <div class="stat"><div class="n">7</div><div class="l">Pipelines measured</div></div>
+          </div>
+          <div class="tags">
+            <span class="tag">TensorRT</span><span class="tag">Triton</span><span class="tag">DeepStream</span>
+            <span class="tag">CUDA graphs</span><span class="tag">INT8 / FP16</span><span class="tag">CUDA IPC</span>
+          </div>
+          <div class="go">Read the study <span class="arrow">→</span></div>
+        </a>
+
+        <div class="card placeholder">
+          <span class="pill soon">In preparation</span>
+          <h3>Language &amp; Multimodal Models</h3>
+          <p>Serving cost for LLMs and VLMs: prefill against decode, the token budget as a free
+             variable, and the latency × accuracy frontier that quantization actually buys.</p>
+        </div>
+
+        <div class="card placeholder">
+          <span class="pill soon">In preparation</span>
+          <h3>Training &amp; Fine-tuning</h3>
+          <p>What a training run spends its time on, and which of the standard efficiency
+             recipes survive contact with a single-GPU budget.</p>
+        </div>
+
+        <div class="card placeholder">
+          <span class="pill soon">In preparation</span>
+          <h3>Deployment &amp; MLOps</h3>
+          <p>Getting a model off the bench: packaging, autoscaling, drift, and the operational
+             costs that never show up in a benchmark table.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>How these studies are run</h2>
+        <span class="rule"></span>
+      </div>
+      <div class="principles">
+        <div class="principle">
+          <h4>One variable at a time</h4>
+          <p>Every arm shares the same model file, the same hardware and the same harness, so a
+             difference in the table is a difference in the thing under test.</p>
+        </div>
+        <div class="principle">
+          <h4>Saturate before you measure</h4>
+          <p>A benchmark that does not saturate the source measures the source. Getting this
+             wrong once is why the first answer in the CV study had to be thrown away.</p>
+        </div>
+        <div class="principle">
+          <h4>Publish the cost, not just the win</h4>
+          <p>Speed is bought with accuracy, memory or complexity. Each result states what it
+             cost, with the accuracy delta alongside the throughput number.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="yr">2026</span> Sadbodh</span>
+    <span class="spacer"></span>
+    <a href="https://github.com/sadbodhs" rel="noopener">github.com/sadbodhs</a>
+    <a href="https://sadbodhs.github.io/computer_vision_optimization/" rel="noopener">CV study</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement, KEY='sb-theme';
+  try{ var s=localStorage.getItem(KEY); if(s) root.setAttribute('data-theme',s); }catch(e){}
+  function current(){
+    var a=root.getAttribute('data-theme');
+    if(a) return a;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.getElementById('theme').addEventListener('click', function(){
+    var next = current()==='dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem(KEY, next); }catch(e){}
+  });
+  document.getElementById('yr').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
