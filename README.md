@@ -8,6 +8,17 @@ question queue, and the deployment topics that rarely get benchmarked.
 A single self-contained `index.html`. No build step, no dependencies: GitHub Pages
 serves the file as-is (`.nojekyll` keeps Jekyll out of the way).
 
+## Layout
+
+A lab-datasheet layout, deliberately not a centred card grid: a fixed left rail
+(index + rig spec table + controls) beside full-width ruled content. Serif prose
+against monospace structure, hairline rules, no border-radius, no shadows, and a
+faint graph-paper ground drawn with two CSS gradients.
+
+The rail collapses to a sticky top bar below 1000px. Topic figures collapse from a
+right-hand column to a row below 1200px — above that the rail would squeeze the
+prose column too narrow.
+
 ## Topics
 
 | Topic | Status | Site |

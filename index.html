@@ -7,474 +7,501 @@
 <meta name="description" content="A workshop notebook: questions about deep learning systems answered by measuring them on real hardware — including the deployment costs nobody benchmarks.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
 <style>
-/* ── tokens ─────────────────────────────────────────────────────────── */
 :root{
-  --bg:#fbfbfa; --surface:#ffffff; --surface-2:#f4f6f5;
-  --ink:#141d1c; --muted:#5a6a68; --faint:#8b9a98;
-  --line:#e3e7e6; --line-strong:#cfd6d5;
-  --accent:#00786d; --accent-ink:#00594f; --accent-wash:#e6f3f1;
-  --warn:#9a6212; --warn-wash:#fbf0dd;
-  --shadow:0 1px 2px rgba(16,32,30,.05), 0 8px 24px -12px rgba(16,32,30,.18);
-  --shadow-lift:0 1px 2px rgba(16,32,30,.06), 0 18px 40px -18px rgba(16,32,30,.28);
-  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --paper:#f7f6f2; --panel:#fffefb; --ink:#12100c; --body:#4a4740; --faint:#8d887e;
+  --rule:#d9d5cb; --rule-hard:#12100c; --grid:rgba(18,16,12,.045);
+  --accent:#0d6f5e; --accent-2:#b4531a;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,"DejaVu Sans Mono",monospace;
+  --serif:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
+  --rail:248px;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#0d1312; --surface:#141c1b; --surface-2:#18211f;
-    --ink:#e7edec; --muted:#93a4a1; --faint:#6d7f7c;
-    --line:#232f2d; --line-strong:#31403d;
-    --accent:#35d6c0; --accent-ink:#6fe6d4; --accent-wash:#122623;
-    --warn:#e0ab5a; --warn-wash:#2a2015;
-    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
-    --shadow-lift:0 1px 2px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.75);
+    --paper:#0b0c0b; --panel:#101211; --ink:#f0eee8; --body:#a8a79f; --faint:#6f6e67;
+    --rule:#262825; --rule-hard:#3d403c; --grid:rgba(240,238,232,.035);
+    --accent:#4fd6b8; --accent-2:#e39257;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0d1312; --surface:#141c1b; --surface-2:#18211f;
-  --ink:#e7edec; --muted:#93a4a1; --faint:#6d7f7c;
-  --line:#232f2d; --line-strong:#31403d;
-  --accent:#35d6c0; --accent-ink:#6fe6d4; --accent-wash:#122623;
-  --warn:#e0ab5a; --warn-wash:#2a2015;
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
-  --shadow-lift:0 1px 2px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.75);
+  --paper:#0b0c0b; --panel:#101211; --ink:#f0eee8; --body:#a8a79f; --faint:#6f6e67;
+  --rule:#262825; --rule-hard:#3d403c; --grid:rgba(240,238,232,.035);
+  --accent:#4fd6b8; --accent-2:#e39257;
 }
 
-/* ── base ───────────────────────────────────────────────────────────── */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%; scroll-behavior:smooth}
-body{margin:0; background:var(--bg); color:var(--ink);
-  font-family:var(--sans); font-size:16px; line-height:1.6;
-  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility}
+body{
+  margin:0; background:var(--paper); color:var(--body);
+  font-family:var(--serif); font-size:16.5px; line-height:1.66;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:30px 30px;
+}
 a{color:inherit}
-img{max-width:100%}
-.wrap{max-width:1080px; margin:0 auto; padding-inline:24px}
+h1,h2,h3,h4{font-weight:600; letter-spacing:-.017em; color:var(--ink)}
+.m{font-family:var(--mono)}
 
-/* ── top bar ────────────────────────────────────────────────────────── */
-.topbar{border-bottom:1px solid var(--line); background:var(--surface);
-  position:sticky; top:0; z-index:10; backdrop-filter:saturate(1.4) blur(8px)}
-.topbar .wrap{display:flex; align-items:center; gap:16px; padding-block:14px}
-.brand{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.14em;
-  text-transform:uppercase; text-decoration:none; display:flex; align-items:center; gap:9px}
-.brand .mark{color:var(--accent); font-size:15px}
-.topbar nav{margin-left:auto; display:flex; align-items:center; gap:4px}
-.topbar nav a, .tbtn{font-family:var(--mono); font-size:12.5px; letter-spacing:.03em;
-  color:var(--muted); text-decoration:none; padding:7px 10px; border-radius:7px;
-  border:1px solid transparent; background:none; cursor:pointer; font-weight:500; white-space:nowrap}
-.topbar nav a:hover,.tbtn:hover{color:var(--ink); background:var(--surface-2); border-color:var(--line)}
-@media (max-width:620px){ .topbar nav a.opt{display:none} }
+/* ══ RAIL ══════════════════════════════════════════════════════ */
+.rail{
+  position:fixed; inset:0 auto 0 0; width:var(--rail); z-index:20;
+  border-right:1px solid var(--rule-hard); background:var(--panel);
+  display:flex; flex-direction:column; padding:26px 22px 20px;
+}
+.rail .mark{
+  font-family:var(--mono); font-size:12.5px; font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--ink); text-decoration:none;
+  display:flex; align-items:center; gap:9px;
+}
+.rail .mark span{color:var(--accent); font-size:14px}
+.rail .tag{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--faint); margin:9px 0 0 23px;
+}
+.rail hr{border:0; border-top:1px solid var(--rule); margin:22px 0}
 
-/* ── hero ───────────────────────────────────────────────────────────── */
-.hero{padding-block:76px 0; border-bottom:1px solid var(--line)}
-.eyebrow{font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.18em;
-  text-transform:uppercase; color:var(--accent); margin:0 0 20px;
-  display:flex; align-items:center; gap:11px}
-.eyebrow::after{content:""; flex:1; max-width:110px; height:1px; background:var(--line-strong)}
-h1{margin:0 0 24px; font-size:clamp(2rem,5vw,3.25rem); line-height:1.1;
-  letter-spacing:-.03em; font-weight:660; max-width:17ch}
-h1 em{font-style:normal; color:var(--accent)}
-.lede{margin:0 0 18px; max-width:66ch; font-size:clamp(1.02rem,1.9vw,1.17rem);
-  color:var(--muted); line-height:1.63}
-.lede strong{color:var(--ink); font-weight:600}
-.rig{display:flex; flex-wrap:wrap; gap:10px; margin:36px 0 56px}
-.rig .chip{font-family:var(--mono); font-size:12px; color:var(--muted);
-  border:1px solid var(--line); background:var(--surface); border-radius:8px; padding:7px 11px;
-  display:flex; align-items:center; gap:8px}
-.rig .chip b{color:var(--ink); font-weight:600}
-.rig .chip::before{content:""; width:5px; height:5px; border-radius:50%; background:var(--accent); flex:none}
-.rig .chip.limit::before{background:var(--warn)}
+.idx{list-style:none; margin:0; padding:0}
+.idx a{
+  display:flex; gap:12px; align-items:baseline; text-decoration:none;
+  font-family:var(--mono); font-size:12.5px; color:var(--faint);
+  padding:7px 0; border-bottom:1px dotted transparent; transition:color .15s;
+}
+.idx a b{color:var(--faint); font-weight:500; font-size:10.5px; letter-spacing:.06em; min-width:24px}
+.idx a:hover{color:var(--ink)}
+.idx a.on{color:var(--ink)}
+.idx a.on b{color:var(--accent)}
 
-/* ── sections ───────────────────────────────────────────────────────── */
-.section{padding-block:64px}
-.section.tight{padding-top:0}
-.section-head{display:flex; align-items:baseline; gap:16px; margin-bottom:10px; flex-wrap:wrap}
-h2{margin:0; font-size:1.06rem; font-weight:660; letter-spacing:-.005em}
-.section-head .count{font-family:var(--mono); font-size:12px; color:var(--faint); letter-spacing:.05em}
-.section-head .rule{flex:1; min-width:40px; height:1px; background:var(--line); align-self:center}
-.section-intro{margin:0 0 30px; max-width:70ch; color:var(--muted); font-size:.95rem}
+.spec{margin-top:auto}
+.spec .hd{font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--faint); margin-bottom:11px}
+.spec dl{margin:0; font-family:var(--mono); font-size:11.5px; line-height:1.5}
+.spec div{display:flex; justify-content:space-between; gap:10px; padding:5px 0;
+  border-bottom:1px dotted var(--rule)}
+.spec dt{color:var(--faint)}
+.spec dd{margin:0; color:var(--ink); text-align:right}
+.spec .warn dd{color:var(--accent-2)}
+.rail .bot{display:flex; gap:8px; margin-top:18px}
+.rail .bot a,.rail .bot button{
+  flex:1; font-family:var(--mono); font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--faint); text-decoration:none; text-align:center; padding:8px 6px; cursor:pointer;
+  background:none; border:1px solid var(--rule);
+}
+.rail .bot a:hover,.rail .bot button:hover{color:var(--ink); border-color:var(--rule-hard)}
 
-.grid{display:grid; gap:20px; grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+/* ══ SHELL ═════════════════════════════════════════════════════ */
+.doc{margin-left:var(--rail); max-width:none}
+.pad{padding:0 clamp(22px,3.6vw,62px)}
+.sec{border-bottom:1px solid var(--rule-hard); padding-block:clamp(48px,6vw,78px)}
+.sec:last-of-type{border-bottom:0}
 
-/* ── topic cards ────────────────────────────────────────────────────── */
-.card{display:flex; flex-direction:column; position:relative; background:var(--surface);
-  border:1px solid var(--line); border-radius:14px; padding:26px 26px 22px;
-  text-decoration:none; box-shadow:var(--shadow);
-  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease}
-.card.live{grid-column:span 2}
-@media (max-width:719px){ .card.live{grid-column:span 1} }
-a.card:hover{transform:translateY(-3px); box-shadow:var(--shadow-lift); border-color:var(--accent)}
-a.card:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+.shd{display:flex; align-items:baseline; gap:18px; margin-bottom:8px}
+.shd .no{font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--accent); font-weight:600}
+.shd h2{margin:0; font-size:1.42rem}
+.shd .rule{flex:1; height:1px; background:var(--rule); align-self:center; min-width:20px}
+.shd .meta{font-family:var(--mono); font-size:11px; color:var(--faint); letter-spacing:.07em}
+.intro{margin:0 0 38px; max-width:74ch; font-size:1.01rem; color:var(--body)}
 
-.pill{align-self:flex-start; font-family:var(--mono); font-size:10.5px; font-weight:600;
-  letter-spacing:.13em; text-transform:uppercase; padding:4px 9px; border-radius:999px;
-  display:flex; align-items:center; gap:6px; margin-bottom:18px; white-space:nowrap}
-.pill.ok{color:var(--accent-ink); background:var(--accent-wash); border:1px solid var(--accent-wash)}
-.pill.ok .dot{width:6px; height:6px; border-radius:50%; background:var(--accent)}
-.pill.soon{color:var(--faint); background:var(--surface-2); border:1px solid var(--line)}
+/* ══ MASTHEAD ══════════════════════════════════════════════════ */
+.mast{padding-block:clamp(56px,8vw,104px); border-bottom:1px solid var(--rule-hard)}
+.kicker{font-family:var(--mono); font-size:11px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 30px}
+.mast h1{margin:0 0 30px; font-size:clamp(2.2rem,5.6vw,4.05rem); line-height:1.04;
+  letter-spacing:-.032em; max-width:19ch; font-weight:600}
+.mast h1 i{font-style:italic; color:var(--accent)}
+.mast .cols{display:grid; grid-template-columns:1.25fr 1fr; gap:clamp(28px,4vw,64px); max-width:1060px}
+@media (max-width:1120px){ .mast .cols{grid-template-columns:1fr; max-width:74ch} }
+.mast p{margin:0 0 17px; font-size:1.065rem; line-height:1.68}
+.mast p strong{color:var(--ink); font-weight:600}
+.mast .note{
+  border-left:2px solid var(--accent); padding:2px 0 2px 18px;
+  font-family:var(--mono); font-size:12.5px; line-height:1.72; color:var(--body);
+}
+.mast .note b{color:var(--ink); font-weight:600; display:block; margin-bottom:6px;
+  font-size:10.5px; letter-spacing:.16em; text-transform:uppercase}
 
-.card h3{margin:0 0 10px; font-size:1.3rem; line-height:1.24; letter-spacing:-.018em; font-weight:650}
-.card .sub{margin:0 0 16px; font-family:var(--mono); font-size:12px; color:var(--faint)}
-.card p{margin:0 0 18px; color:var(--muted); font-size:.95rem; line-height:1.6}
-.card p.finding{color:var(--ink); border-left:2px solid var(--accent); padding-left:14px; font-size:.93rem}
-.stats{display:flex; flex-wrap:wrap; gap:26px; padding:18px 0;
-  border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-bottom:18px}
-.stat .n{font-family:var(--mono); font-size:1.42rem; font-weight:600; letter-spacing:-.02em;
-  line-height:1.1; color:var(--ink)}
-.stat .n small{font-size:.62em; font-weight:500; color:var(--muted); margin-left:2px}
-.stat .l{font-size:11.5px; color:var(--faint); margin-top:5px}
-.tags{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:20px}
-.tag{font-family:var(--mono); font-size:11px; color:var(--muted); border:1px solid var(--line);
-  border-radius:6px; padding:3.5px 8px; background:var(--surface-2)}
-.go{margin-top:auto; font-family:var(--mono); font-size:12.5px; font-weight:600;
-  color:var(--accent); letter-spacing:.03em; display:flex; align-items:center; gap:8px}
-.go .arrow{transition:transform .18s ease}
-a.card:hover .go .arrow{transform:translateX(4px)}
-.card.placeholder{border-style:dashed; box-shadow:none; background:transparent}
-.card.placeholder h3{color:var(--muted); font-size:1.1rem}
-.card.placeholder p{font-size:.9rem; color:var(--faint); margin-bottom:0}
+/* ══ TOPIC ROWS ════════════════════════════════════════════════ */
+.rows{border-top:1px solid var(--rule-hard)}
+.row{
+  display:grid; grid-template-columns:104px 1fr 220px; gap:0 26px;
+  padding:26px 0; border-bottom:1px solid var(--rule); text-decoration:none; align-items:start;
+  transition:background .16s;
+}
+a.row:hover{background:var(--panel)}
+a.row:hover .rtitle{color:var(--accent)}
+@media (max-width:1200px){ .row{grid-template-columns:96px 1fr} .row .figs{grid-column:2; margin-top:16px} }
+@media (max-width:620px){ .row{grid-template-columns:1fr; gap:10px} .row .figs{grid-column:1} }
 
-/* ── bench queue ────────────────────────────────────────────────────── */
-.bench{border-top:1px solid var(--line)}
-.bench li{list-style:none; display:grid; grid-template-columns:132px 1fr; gap:4px 22px;
-  padding:22px 0; border-bottom:1px solid var(--line); align-items:start}
-.bench ul{margin:0; padding:0}
-@media (max-width:640px){ .bench li{grid-template-columns:1fr; gap:12px} }
-.st{font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.12em;
-  text-transform:uppercase; padding:4px 9px; border-radius:999px; justify-self:start; white-space:nowrap}
-.st.design{color:var(--accent-ink); background:var(--accent-wash); border:1px solid var(--accent-wash)}
-.st.queued{color:var(--faint); background:var(--surface-2); border:1px solid var(--line)}
-.st.blocked{color:var(--warn); background:var(--warn-wash); border:1px solid var(--warn-wash)}
-.bench .q{margin:0 0 7px; font-size:1.04rem; font-weight:600; letter-spacing:-.012em; line-height:1.4}
-.bench .why{margin:0; color:var(--muted); font-size:.92rem; line-height:1.6; max-width:72ch}
-.bench .why code{font-family:var(--mono); font-size:.88em; background:var(--surface-2);
-  border:1px solid var(--line); border-radius:4px; padding:1px 5px}
+.state{font-family:var(--mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase;
+  padding-top:5px; white-space:nowrap}
+.state.on{color:var(--accent)}
+.state.on::before{content:"● "}
+.state.off{color:var(--faint)}
+.state.off::before{content:"○ "}
 
-/* ── gaps ───────────────────────────────────────────────────────────── */
-.gaps{display:grid; gap:2px; background:var(--line); border:1px solid var(--line);
-  border-radius:12px; overflow:hidden; grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
-.gap{background:var(--bg); padding:24px 22px}
-.gap .num{font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:600;
-  letter-spacing:.1em; margin-bottom:10px}
-.gap h4{margin:0 0 8px; font-size:.99rem; font-weight:640; letter-spacing:-.012em}
-.gap p{margin:0; font-size:.9rem; color:var(--muted); line-height:1.58}
+.rtitle{margin:0 0 6px; font-size:1.24rem; transition:color .16s}
+.rsub{font-family:var(--mono); font-size:11.5px; color:var(--faint); margin:0 0 12px}
+.row p{margin:0 0 12px; font-size:.97rem; max-width:66ch}
+.pull{margin:0; padding-left:16px; border-left:2px solid var(--accent); color:var(--ink);
+  font-size:.96rem; max-width:64ch}
+.rgo{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--accent); margin-top:14px; display:block}
 
-/* ── principles ─────────────────────────────────────────────────────── */
-.principles{display:grid; gap:22px 26px; grid-template-columns:repeat(2,1fr)}
-@media (min-width:920px){ .principles{grid-template-columns:repeat(4,1fr)} }
-@media (max-width:560px){ .principles{grid-template-columns:1fr} }
-.principle{border-top:2px solid var(--accent); padding-top:16px}
-.principle h4{margin:0 0 8px; font-size:.97rem; font-weight:640; letter-spacing:-.01em}
-.principle p{margin:0; font-size:.9rem; color:var(--muted); line-height:1.58}
+.figs{display:flex; flex-direction:column; gap:12px; border-left:1px solid var(--rule); padding-left:22px}
+@media (max-width:1200px){ .figs{flex-direction:row; flex-wrap:wrap; gap:26px; border-left:0;
+  border-top:1px dotted var(--rule); padding:14px 0 0} }
+.fig .v{font-family:var(--mono); font-size:1.38rem; color:var(--ink); font-weight:600; line-height:1;
+  letter-spacing:-.02em}
+.fig .v i{font-style:normal; font-size:.55em; color:var(--faint); margin-left:3px}
+.fig .k{font-family:var(--mono); font-size:9.5px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--faint); margin-top:6px}
+.chips{display:flex; flex-wrap:wrap; gap:5px; margin-top:14px}
+.chips i{font-style:normal; font-family:var(--mono); font-size:10.5px; color:var(--faint);
+  border:1px solid var(--rule); padding:3px 7px}
 
-/* ── footer ─────────────────────────────────────────────────────────── */
-footer{border-top:1px solid var(--line); padding-block:34px 46px}
-footer .wrap{display:flex; flex-wrap:wrap; gap:14px 26px; align-items:center;
-  font-family:var(--mono); font-size:12px; color:var(--faint)}
-footer a{color:var(--muted); text-decoration:none; border-bottom:1px solid var(--line)}
-footer a:hover{color:var(--accent); border-color:var(--accent)}
-footer .spacer{flex:1; min-width:20px}
+/* ══ BENCH ═════════════════════════════════════════════════════ */
+.q{display:grid; grid-template-columns:104px 1fr; gap:0 26px; padding:24px 0;
+  border-bottom:1px solid var(--rule)}
+.q:first-child{border-top:1px solid var(--rule-hard)}
+@media (max-width:620px){ .q{grid-template-columns:1fr; gap:11px} }
+.q .st{font-family:var(--mono); font-size:10px; letter-spacing:.11em; text-transform:uppercase;
+  padding-top:5px; white-space:nowrap}
+.q .st.a{color:var(--accent)}
+.q .st.b{color:var(--faint)}
+.q .st.c{color:var(--accent-2)}
+.q h3{margin:0 0 8px; font-size:1.12rem; line-height:1.38}
+.q p{margin:0; font-size:.96rem; max-width:76ch}
+.q code{font-family:var(--mono); font-size:.85em; color:var(--ink);
+  border-bottom:1px solid var(--rule-hard)}
+
+/* ══ GAPS ══════════════════════════════════════════════════════ */
+.gaps{display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--rule-hard)}
+@media (max-width:1200px){ .gaps{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:620px){ .gaps{grid-template-columns:1fr} }
+.gap{padding:28px 30px 30px 0; border-bottom:1px solid var(--rule); border-right:1px solid var(--rule);
+  position:relative}
+.gap{padding-left:30px}
+.gaps .gap:nth-child(3n){border-right:0}
+@media (max-width:1200px){ .gaps .gap:nth-child(3n){border-right:1px solid var(--rule)}
+  .gaps .gap:nth-child(2n){border-right:0} }
+@media (max-width:620px){ .gaps .gap{border-right:0; padding-left:0} }
+.gap .n{font-family:var(--mono); font-size:2.7rem; line-height:1; color:var(--rule);
+  font-weight:700; letter-spacing:-.04em; margin-bottom:14px}
+.gap h4{margin:0 0 9px; font-size:1.02rem}
+.gap p{margin:0; font-size:.93rem; max-width:40ch}
+
+/* ══ RULES ═════════════════════════════════════════════════════ */
+.rules{display:grid; grid-template-columns:repeat(2,1fr); gap:0 clamp(28px,4vw,60px)}
+@media (max-width:1040px){ .rules{grid-template-columns:1fr} }
+.rule-i{display:grid; grid-template-columns:52px 1fr; gap:18px; padding:22px 0;
+  border-bottom:1px solid var(--rule)}
+.rule-i .n{font-family:var(--mono); font-size:11px; color:var(--accent); font-weight:600;
+  letter-spacing:.1em; padding-top:4px}
+.rule-i h4{margin:0 0 7px; font-size:1.01rem}
+.rule-i p{margin:0; font-size:.93rem}
+
+/* ══ FOOT ══════════════════════════════════════════════════════ */
+.foot{padding-block:30px 42px; display:flex; flex-wrap:wrap; gap:12px 26px; align-items:center;
+  font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--faint);
+  border-top:1px solid var(--rule-hard)}
+.foot a{color:var(--body); text-decoration:none; border-bottom:1px solid var(--rule)}
+.foot a:hover{color:var(--accent)}
+.foot .sp{flex:1; min-width:16px}
+
+/* ══ MOBILE RAIL ═══════════════════════════════════════════════ */
+@media (max-width:1000px){
+  :root{--rail:0px}
+  .doc{margin-left:0}
+  .rail{position:sticky; inset:auto; width:auto; flex-direction:row; align-items:center;
+    gap:14px; padding:12px clamp(24px,4.6vw,68px); border-right:0;
+    border-bottom:1px solid var(--rule-hard); top:0; overflow-x:auto}
+  .rail hr,.rail .tag,.idx,.spec .hd,.spec dl{display:none}
+  .spec{margin:0 0 0 auto}
+  .rail .bot{margin:0; gap:6px}
+  .rail .bot a,.rail .bot button{padding:6px 10px}
+}
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <div class="wrap">
-    <a class="brand" href="/"><span class="mark">◈</span> Sadbodh</a>
-    <nav>
-      <a href="#topics">Topics</a>
-      <a href="#bench">On the bench</a>
-      <a class="opt" href="#gaps">The gaps</a>
-      <a class="opt" href="https://github.com/sadbodhs" rel="noopener">GitHub</a>
-      <button class="tbtn" id="theme" type="button" aria-label="Toggle colour theme">Theme</button>
-    </nav>
+<aside class="rail">
+  <a class="mark" href="/"><span>◈</span> Sadbodh</a>
+  <div class="tag">open bench</div>
+  <hr>
+  <ul class="idx">
+    <li><a href="#topics"><b>01</b> Topics</a></li>
+    <li><a href="#bench"><b>02</b> On the bench</a></li>
+    <li><a href="#gaps"><b>03</b> Things nobody benchmarks</a></li>
+    <li><a href="#rules"><b>04</b> The bar for a number</a></li>
+  </ul>
+  <div class="spec">
+    <div class="hd">Rig</div>
+    <dl>
+      <div><dt>GPU</dt><dd>RTX 3090</dd></div>
+      <div><dt>VRAM</dt><dd>24 GB</dd></div>
+      <div><dt>Arch</dt><dd>sm_86</dd></div>
+      <div><dt>Second</dt><dd>Mac Studio</dd></div>
+      <div><dt>Runtime</dt><dd>Docker</dd></div>
+      <div class="warn"><dt>Limit</dt><dd>no FP8</dd></div>
+    </dl>
+    <div class="bot">
+      <a href="https://github.com/sadbodhs" rel="noopener">GitHub</a>
+      <button id="theme" type="button" aria-label="Toggle colour theme">Theme</button>
+    </div>
   </div>
-</header>
+</aside>
 
-<main>
-  <section class="hero">
-    <div class="wrap">
-      <p class="eyebrow">An open bench</p>
-      <h1>Questions I wanted answered, so I <em>measured them.</em></h1>
-      <p class="lede">
-        This is a workshop, not a portfolio. I take a question about how deep learning systems
-        actually behave — serving, deployment, the cost of going fast — and I run the experiment
-        on hardware sitting in my room until there is a number. <strong>Measured, not asserted.</strong>
-      </p>
-      <p class="lede">
-        A lot of what ends up here is stuff the literature skips. Everyone benchmarks the model;
-        almost nobody publishes what it costs to <em>deploy</em> one. The work in progress is posted
-        alongside the finished work, including the experiments that failed.
-      </p>
-      <div class="rig">
-        <span class="chip"><b>RTX 3090</b> · 24 GB · compute 8.6</span>
-        <span class="chip"><b>Mac Studio</b> · Apple Silicon</span>
-        <span class="chip">Everything runs in Docker</span>
-        <span class="chip limit">No FP8 on 8.6 — said, not hidden</span>
+<div class="doc">
+
+  <!-- ══ MASTHEAD ══ -->
+  <header class="mast pad">
+    <p class="kicker">An open bench · est. 2026</p>
+    <h1>Questions I wanted answered, so I <i>measured them.</i></h1>
+    <div class="cols">
+      <div>
+        <p>This is a workshop, not a portfolio. I take a question about how deep learning systems
+          actually behave — serving, deployment, the cost of going fast — and run the experiment on
+          hardware sitting in my room until there is a number. <strong>Measured, not asserted.</strong></p>
+        <p>A lot of what lands here is what the literature skips. Everyone benchmarks the model;
+          almost nobody publishes what it costs to <em>deploy</em> one. Work in progress is posted
+          alongside finished work, including the experiments that failed.</p>
+      </div>
+      <div class="note">
+        <b>Reading this page</b>
+        §01 is finished work, with numbers.<br>
+        §02 is the open queue — no numbers are
+        claimed for anything on it.<br>
+        §03 is what almost nobody measures.<br>
+        §04 is the bar a number clears
+        before it appears anywhere here.
       </div>
     </div>
-  </section>
+  </header>
 
-  <!-- ── topics ── -->
-  <section class="section" id="topics">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Topics</h2>
-        <span class="count">01 live · 04 in preparation</span>
-        <span class="rule"></span>
-      </div>
-      <p class="section-intro">
-        Each topic is its own repository and its own site, with the harness and the raw results
-        committed next to the findings.
-      </p>
+  <!-- ══ 01 TOPICS ══ -->
+  <section class="sec pad" id="topics">
+    <div class="shd">
+      <span class="no">§01</span><h2>Topics</h2>
+      <span class="rule"></span><span class="meta">01 live · 04 in preparation</span>
+    </div>
+    <p class="intro">Each topic is its own repository and its own site, with the harness and the raw
+      results committed next to the findings.</p>
 
-      <div class="grid">
+    <div class="rows">
 
-        <a class="card live" href="https://sadbodhs.github.io/computer_vision_optimization/" rel="noopener">
-          <span class="pill ok"><span class="dot"></span> Live</span>
-          <h3>Computer Vision — Inference Serving</h3>
-          <p class="sub">Triton vs TensorRT vs DeepStream · RTX 3090 · YOLOv8s FP16</p>
-          <p>
-            For the same detection model on the same GPU, which serving pipeline processes a frame
+      <a class="row" href="https://sadbodhs.github.io/computer_vision_optimization/" rel="noopener">
+        <div class="state on">Live</div>
+        <div>
+          <h3 class="rtitle">Computer Vision — Inference Serving</h3>
+          <p class="rsub">Triton vs TensorRT vs DeepStream · RTX 3090 · YOLOv8s FP16</p>
+          <p>For the same detection model on the same GPU, which serving pipeline processes a frame
             fastest — and which delivers the most frames per second? Seven pipelines, one identical
-            ONNX file, swept over concurrency 1–16.
-          </p>
-          <p class="finding">
-            The plumbing costs more than the model. One flow goes from 222 to 654 fps with no change
-            to the server at all — only to the client.
-          </p>
-          <div class="stats">
-            <div class="stat"><div class="n">1.23<small>ms</small></div><div class="l">Lowest p50 latency</div></div>
-            <div class="stat"><div class="n">1665<small>fps</small></div><div class="l">Peak throughput</div></div>
-            <div class="stat"><div class="n">7</div><div class="l">Pipelines measured</div></div>
-          </div>
-          <div class="tags">
-            <span class="tag">TensorRT</span><span class="tag">Triton</span><span class="tag">DeepStream</span>
-            <span class="tag">CUDA graphs</span><span class="tag">INT8 / FP16</span><span class="tag">CUDA IPC</span>
-          </div>
-          <div class="go">Read the study <span class="arrow">→</span></div>
-        </a>
+            ONNX file, swept over concurrency 1–16.</p>
+          <p class="pull">The plumbing costs more than the model. One flow goes from 222 to 654 fps
+            with no change to the server at all — only to the client.</p>
+          <div class="chips"><i>TensorRT</i><i>Triton</i><i>DeepStream</i><i>CUDA graphs</i><i>INT8 / FP16</i><i>CUDA IPC</i></div>
+          <span class="rgo">Read the study →</span>
+        </div>
+        <div class="figs">
+          <div class="fig"><div class="v">1.23<i>ms</i></div><div class="k">Lowest p50</div></div>
+          <div class="fig"><div class="v">1665<i>fps</i></div><div class="k">Peak throughput</div></div>
+          <div class="fig"><div class="v">7</div><div class="k">Pipelines</div></div>
+        </div>
+      </a>
 
-        <div class="card placeholder">
-          <span class="pill soon">In preparation</span>
-          <h3>Vision-Language Models</h3>
+      <div class="row">
+        <div class="state off">In prep</div>
+        <div>
+          <h3 class="rtitle">Vision-Language Models</h3>
           <p>Two engines in one model: a compute-bound encoder bolted to a memory-bandwidth-bound
-             decoder. The image is not one frame, it is N tokens — and N is a policy decision.
-             The deliverable is a latency × accuracy frontier, not a winner.</p>
+            decoder. The image is not one frame, it is N tokens — and N is a policy decision. The
+            deliverable is a latency × accuracy frontier, not a winner.</p>
         </div>
+      </div>
 
-        <div class="card placeholder">
-          <span class="pill soon">In preparation</span>
-          <h3>VLA for Robotics</h3>
-          <p>Vision-language-action models on a control loop, where the deadline is a real one.
-             What does a policy cost per cycle, what does the deadline cost in accuracy, and what
-             survives the move from a workstation GPU to something a robot can carry.</p>
+      <div class="row">
+        <div class="state off">In prep</div>
+        <div>
+          <h3 class="rtitle">VLA for Robotics</h3>
+          <p>Vision-language-action models on a control loop, where the deadline is a real one. What
+            a policy costs per cycle, what the deadline costs in accuracy, and what survives the move
+            from a workstation GPU to something a robot can carry.</p>
         </div>
+      </div>
 
-        <div class="card placeholder">
-          <span class="pill soon">In preparation</span>
-          <h3>Training &amp; Fine-tuning</h3>
+      <div class="row">
+        <div class="state off">In prep</div>
+        <div>
+          <h3 class="rtitle">Training &amp; Fine-tuning</h3>
           <p>What a training run actually spends its time on, and which of the standard efficiency
-             recipes survive contact with a single-GPU budget.</p>
+            recipes survive contact with a single-GPU budget.</p>
         </div>
+      </div>
 
-        <div class="card placeholder">
-          <span class="pill soon">In preparation</span>
-          <h3>Deployment &amp; MLOps</h3>
+      <div class="row">
+        <div class="state off">In prep</div>
+        <div>
+          <h3 class="rtitle">Deployment &amp; MLOps</h3>
           <p>Getting a model off the bench: packaging, cold start, versioning, drift, and the
-             operational costs that never appear in a benchmark table.</p>
+            operational costs that never appear in a benchmark table.</p>
         </div>
+      </div>
 
+    </div>
+  </section>
+
+  <!-- ══ 02 BENCH ══ -->
+  <section class="sec pad" id="bench">
+    <div class="shd">
+      <span class="no">§02</span><h2>On the bench</h2>
+      <span class="rule"></span><span class="meta">06 open</span>
+    </div>
+    <p class="intro">The queue, in the open. These are unanswered — no numbers are claimed for
+      anything on this list. Some are next up; some are blocked on a harness that cannot yet measure
+      them honestly.</p>
+
+    <div class="q">
+      <div class="st a">Next up</div>
+      <div>
+        <h3>Do application-level tricks dwarf everything in the serving layer?</h3>
+        <p>Detect every N frames and track between them, tile the ROI for small objects, cascade a
+          cheap detector into an expensive classifier. These routinely beat every serving
+          optimization I have measured <em>by an order of magnitude</em> — and not one of them is
+          measured yet. This is the largest gap in the CV study.</p>
+      </div>
+    </div>
+    <div class="q">
+      <div class="st a">In design</div>
+      <div>
+        <h3>How far can vision tokens be cut before the answer falls off a cliff?</h3>
+        <p>Prefill cost scales with token count, and token count is a free variable. The hypothesis
+          is that natural-image VQA tolerates aggressive pruning and document VQA does not — so the
+          honest output is a per-task frontier rather than one number.</p>
+      </div>
+    </div>
+    <div class="q">
+      <div class="st b">Queued</div>
+      <div>
+        <h3>What does a VLA policy cost per control cycle?</h3>
+        <p>A robot's loop has a deadline that does not negotiate. Serving metrics built for
+          throughput do not describe this at all: what matters is the tail, and what the tail costs
+          when the policy has to fit on hardware the robot carries.</p>
+      </div>
+    </div>
+    <div class="q">
+      <div class="st b">Queued</div>
+      <div>
+        <h3>How do you find a bottleneck you did not already suspect?</h3>
+        <p>Everything published so far measures <em>known</em> stages. That teaches you to confirm a
+          hypothesis, not to discover one. Nsight Systems with NVTX ranges is the obvious answer and
+          it deserves its own write-up.</p>
+      </div>
+    </div>
+    <div class="q">
+      <div class="st c">Blocked</div>
+      <div>
+        <h3>Is DeepStream genuinely source-bound, or is my harness the bottleneck?</h3>
+        <p>At 8 streams it reaches ~501 fps against 1640 — which looks decisive until the GPU shows
+          <strong>median 0% utilisation</strong>. A 345 KB CPU copy per frame per stream sits in the
+          critical path. Fixing it means pre-allocated NVMM buffers, not a parameter change. Until
+          then the number means nothing and is not published as one.</p>
+      </div>
+    </div>
+    <div class="q">
+      <div class="st c">Blocked</div>
+      <div>
+        <h3>Can the dynamic-batch server flow use CUDA graphs?</h3>
+        <p>Graphs gave +11.8% fps elsewhere. The batching flow needs one captured graph per batch
+          size via <code>graph_spec</code>, which is why the tuning sweep could not cover it either.</p>
       </div>
     </div>
   </section>
 
-  <!-- ── on the bench ── -->
-  <section class="section tight" id="bench">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>On the bench</h2>
-        <span class="count">open questions</span>
-        <span class="rule"></span>
-      </div>
-      <p class="section-intro">
-        The queue, in the open. These are unanswered — no numbers are claimed for anything on this
-        list. Some are next up, some are blocked on a harness that cannot yet measure them honestly.
-      </p>
-
-      <div class="bench">
-        <ul>
-          <li>
-            <span class="st design">Next up</span>
-            <div>
-              <p class="q">Do application-level tricks dwarf everything in the serving layer?</p>
-              <p class="why">Detect every N frames and track between them, tile the ROI for small
-                objects, cascade a cheap detector into an expensive classifier. These routinely beat
-                every serving optimization I have measured <em>by an order of magnitude</em> — and not
-                one of them is measured yet. This is the most important gap in the CV study.</p>
-            </div>
-          </li>
-          <li>
-            <span class="st design">In design</span>
-            <div>
-              <p class="q">How far can vision tokens be cut before the answer falls off a cliff?</p>
-              <p class="why">Prefill cost scales with token count, and token count is a free variable.
-                The hypothesis is that natural-image VQA tolerates aggressive pruning and document VQA
-                does not — so the honest output is a per-task frontier rather than one number.</p>
-            </div>
-          </li>
-          <li>
-            <span class="st queued">Queued</span>
-            <div>
-              <p class="q">What does a VLA policy cost per control cycle?</p>
-              <p class="why">A robot's loop has a deadline that does not negotiate. Serving metrics
-                built for throughput do not describe this at all: what matters is the tail, and what
-                the tail costs when the policy has to fit on hardware the robot carries.</p>
-            </div>
-          </li>
-          <li>
-            <span class="st queued">Queued</span>
-            <div>
-              <p class="q">How do you find a bottleneck you did not already suspect?</p>
-              <p class="why">Everything published so far measures <em>known</em> stages. That teaches
-                you to confirm a hypothesis, not to discover one. Nsight Systems with NVTX ranges is
-                the obvious answer and it deserves its own write-up.</p>
-            </div>
-          </li>
-          <li>
-            <span class="st blocked">Blocked</span>
-            <div>
-              <p class="q">Is DeepStream genuinely source-bound, or is my harness the bottleneck?</p>
-              <p class="why">At 8 streams it reaches ~501 fps against 1640 — which looks decisive
-                until the GPU shows <b>median 0% utilisation</b>. A 345 KB CPU copy per frame per
-                stream is in the critical path. Fixing it means pre-allocated NVMM buffers, not a
-                parameter change. Until then the number means nothing and is not published as one.</p>
-            </div>
-          </li>
-          <li>
-            <span class="st blocked">Blocked</span>
-            <div>
-              <p class="q">Can the dynamic-batch server flow use CUDA graphs?</p>
-              <p class="why">Graphs gave +11.8% fps elsewhere. The batching flow needs one captured
-                graph per batch size via <code>graph_spec</code>, which is why the tuning sweep could
-                not cover it either.</p>
-            </div>
-          </li>
-        </ul>
-      </div>
+  <!-- ══ 03 GAPS ══ -->
+  <section class="sec pad" id="gaps">
+    <div class="shd">
+      <span class="no">§03</span><h2>Things nobody benchmarks</h2>
+      <span class="rule"></span>
+    </div>
+    <p class="intro">Every one of these decides whether a deployment works, and none of them appear
+      in the benchmark tables people actually publish. They get their own write-ups here.</p>
+    <div class="gaps">
+      <div class="gap"><div class="n">01</div><h4>Cold start and engine load</h4>
+        <p>Everyone reports the thousandth frame. Nobody reports how long you wait for the first one
+          — or what that means for a service that scales to zero.</p></div>
+      <div class="gap"><div class="n">02</div><h4>Engine portability</h4>
+        <p>A TensorRT engine is welded to the exact build that produced it. Two containers in one
+          study already disagreed — 10.7 against 10.3 — and that is an ops problem, not a footnote.</p></div>
+      <div class="gap"><div class="n">03</div><h4>Memory per instance</h4>
+        <p>Doubling server instances bought +30% throughput. The VRAM it cost is the number that
+          decides whether the config fits on the card at all.</p></div>
+      <div class="gap"><div class="n">04</div><h4>Clocks, power and heat</h4>
+        <p>A benchmark's first thirty seconds are not its steady state. Sustained throughput on a
+          throttling card is a different number, and it is the one you deploy against.</p></div>
+      <div class="gap"><div class="n">05</div><h4>Whether the benchmark is real</h4>
+        <p>A harness that cannot saturate the system measures the harness. This one got that wrong
+          once and had to throw the first answer away.</p></div>
+      <div class="gap"><div class="n">06</div><h4>The experiments that failed</h4>
+        <p>2:4 structured sparsity returned +1.1% at its ceiling — not worth the retraining.
+          Published anyway. A cheap negative result closes a question for everyone.</p></div>
     </div>
   </section>
 
-  <!-- ── gaps ── -->
-  <section class="section tight" id="gaps">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Things nobody benchmarks</h2>
-        <span class="rule"></span>
-      </div>
-      <p class="section-intro">
-        Every one of these decides whether a deployment works, and none of them appear in the
-        benchmark tables people actually publish. They get their own write-ups here.
-      </p>
-      <div class="gaps">
-        <div class="gap">
-          <div class="num">01</div>
-          <h4>Cold start and engine load</h4>
-          <p>Everyone reports the thousandth frame. Nobody reports how long you wait for the first
-             one — or what that means for a service that scales to zero.</p>
-        </div>
-        <div class="gap">
-          <div class="num">02</div>
-          <h4>Engine portability</h4>
-          <p>A TensorRT engine is welded to the exact build that produced it. Two containers in one
-             study already disagreed — 10.7 against 10.3 — and that is an ops problem, not a footnote.</p>
-        </div>
-        <div class="gap">
-          <div class="num">03</div>
-          <h4>Memory per instance</h4>
-          <p>Doubling server instances bought +30% throughput. The VRAM it cost is the number that
-             decides whether the config fits on the card at all.</p>
-        </div>
-        <div class="gap">
-          <div class="num">04</div>
-          <h4>Clocks, power and heat</h4>
-          <p>A benchmark's first thirty seconds are not its steady state. Sustained throughput on a
-             throttling card is a different number, and it is the one you deploy against.</p>
-        </div>
-        <div class="gap">
-          <div class="num">05</div>
-          <h4>Whether the benchmark is real</h4>
-          <p>A harness that cannot saturate the system measures the harness. This one got that wrong
-             once and had to throw the first answer away — which is why saturation is now a
-             precondition, not a detail.</p>
-        </div>
-        <div class="gap">
-          <div class="num">06</div>
-          <h4>The experiments that failed</h4>
-          <p>2:4 structured sparsity returned +1.1% at its ceiling — not worth the retraining.
-             Published anyway. A cheap negative result closes a question for everyone who would
-             have tried it next.</p>
-        </div>
-      </div>
+  <!-- ══ 04 RULES ══ -->
+  <section class="sec pad" id="rules">
+    <div class="shd">
+      <span class="no">§04</span><h2>The bar for a number here</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="rules">
+      <div class="rule-i"><div class="n">R1</div><div><h4>One variable at a time</h4>
+        <p>Every arm shares the same model file, the same hardware and the same harness, so a
+          difference in the table is a difference in the thing under test.</p></div></div>
+      <div class="rule-i"><div class="n">R2</div><div><h4>Saturate before you measure</h4>
+        <p>A benchmark that does not saturate the source measures the source. Getting this wrong
+          once is why the first answer in the CV study had to be thrown away.</p></div></div>
+      <div class="rule-i"><div class="n">R3</div><div><h4>Publish the cost, not just the win</h4>
+        <p>Speed is bought with accuracy, memory or complexity. Every result states what it cost,
+          with the accuracy delta beside the throughput number.</p></div></div>
+      <div class="rule-i"><div class="n">R4</div><div><h4>Say what was not measured</h4>
+        <p>Open questions stay marked open and unmeasured claims are not made. Where the rig has a
+          hard limit, it is stated rather than quietly skipped.</p></div></div>
     </div>
   </section>
 
-  <!-- ── house rules ── -->
-  <section class="section tight">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>The bar for a number here</h2>
-        <span class="rule"></span>
-      </div>
-      <div class="principles">
-        <div class="principle">
-          <h4>One variable at a time</h4>
-          <p>Every arm shares the same model file, the same hardware and the same harness, so a
-             difference in the table is a difference in the thing under test.</p>
-        </div>
-        <div class="principle">
-          <h4>Saturate before you measure</h4>
-          <p>A benchmark that does not saturate the source measures the source. Getting this wrong
-             once is why the first answer in the CV study had to be thrown away.</p>
-        </div>
-        <div class="principle">
-          <h4>Publish the cost, not just the win</h4>
-          <p>Speed is bought with accuracy, memory or complexity. Every result states what it cost,
-             with the accuracy delta beside the throughput number.</p>
-        </div>
-        <div class="principle">
-          <h4>Say what was not measured</h4>
-          <p>Open questions stay marked open and unmeasured claims are not made. Where the rig has
-             a hard limit, it is stated rather than quietly skipped.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer>
-  <div class="wrap">
+  <div class="foot pad">
     <span>© <span id="yr">2026</span> Sadbodh</span>
-    <span class="spacer"></span>
+    <span class="sp"></span>
     <a href="https://github.com/sadbodhs" rel="noopener">github.com/sadbodhs</a>
     <a href="https://sadbodhs.github.io/computer_vision_optimization/" rel="noopener">CV study</a>
   </div>
-</footer>
+</div>
 
 <script>
 (function(){
   var root=document.documentElement, KEY='sb-theme';
   try{ var s=localStorage.getItem(KEY); if(s) root.setAttribute('data-theme',s); }catch(e){}
-  function current(){
-    var a=root.getAttribute('data-theme');
-    if(a) return a;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  document.getElementById('theme').addEventListener('click', function(){
-    var next = current()==='dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    try{ localStorage.setItem(KEY, next); }catch(e){}
+  function cur(){ var a=root.getAttribute('data-theme'); return a ||
+    (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); }
+  document.getElementById('theme').addEventListener('click',function(){
+    var n=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',n);
+    try{ localStorage.setItem(KEY,n); }catch(e){}
   });
-  document.getElementById('yr').textContent = new Date().getFullYear();
+  document.getElementById('yr').textContent=new Date().getFullYear();
+
+  var links=[].slice.call(document.querySelectorAll('.idx a'));
+  var secs=links.map(function(a){
+    return {a:a, el:document.querySelector(a.getAttribute('href'))};
+  }).filter(function(x){ return x.el; });
+  function spy(){
+    var line=window.scrollY + window.innerHeight*0.28, active=null;
+    secs.forEach(function(x){ if(x.el.offsetTop <= line) active=x; });
+    links.forEach(function(l){ l.classList.remove('on'); });
+    if(active) active.a.classList.add('on');
+  }
+  addEventListener('scroll',spy,{passive:true});
+  addEventListener('resize',spy,{passive:true});
+  spy();
 })();
 </script>
 </body>
