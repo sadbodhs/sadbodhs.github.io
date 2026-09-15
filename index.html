@@ -8,24 +8,24 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
 <style>
 :root{
-  --paper:#f7f6f2; --panel:#fffefb; --ink:#12100c; --body:#4a4740; --faint:#8d887e;
-  --rule:#d9d5cb; --rule-hard:#12100c; --grid:rgba(18,16,12,.045);
-  --accent:#0d6f5e; --accent-2:#b4531a;
+  --paper:#fbfbf8; --panel:#ffffff; --ink:#1c2333; --body:#414a5c; --faint:#79808f;
+  --rule:#d6dae2; --rule-hard:#1c2333; --grid:rgba(28,35,51,.03);
+  --accent:#1f4e8c; --accent-2:#9c3327;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,"DejaVu Sans Mono",monospace;
   --serif:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype",Palatino,serif;
   --rail:248px;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --paper:#0b0c0b; --panel:#101211; --ink:#f0eee8; --body:#a8a79f; --faint:#6f6e67;
-    --rule:#262825; --rule-hard:#3d403c; --grid:rgba(240,238,232,.035);
-    --accent:#4fd6b8; --accent-2:#e39257;
+    --paper:#0f1319; --panel:#141923; --ink:#e9ecf2; --body:#9aa3b5; --faint:#66708f;
+    --rule:#272e3d; --rule-hard:#3a4356; --grid:rgba(233,236,242,.025);
+    --accent:#7fb1e8; --accent-2:#e0917d;
   }
 }
 :root[data-theme="dark"]{
-  --paper:#0b0c0b; --panel:#101211; --ink:#f0eee8; --body:#a8a79f; --faint:#6f6e67;
-  --rule:#262825; --rule-hard:#3d403c; --grid:rgba(240,238,232,.035);
-  --accent:#4fd6b8; --accent-2:#e39257;
+  --paper:#0f1319; --panel:#141923; --ink:#e9ecf2; --body:#9aa3b5; --faint:#66708f;
+  --rule:#272e3d; --rule-hard:#3a4356; --grid:rgba(233,236,242,.025);
+  --accent:#7fb1e8; --accent-2:#e0917d;
 }
 
 *{box-sizing:border-box}
@@ -34,10 +34,6 @@ body{
   margin:0; background:var(--paper); color:var(--body);
   font-family:var(--serif); font-size:16.5px; line-height:1.66;
   -webkit-font-smoothing:antialiased;
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size:30px 30px;
 }
 a{color:inherit}
 h1,h2,h3,h4{font-weight:600; letter-spacing:-.017em; color:var(--ink)}
