@@ -1,6 +1,9 @@
 # sadbodhs.github.io
 
-Landing page for the deep learning studies — served at **https://sadbodhs.github.io/**.
+Landing page for the deep learning bench — served at **https://sadbodhs.github.io/**.
+
+It frames the work as a workshop rather than a portfolio: finished studies, the open
+question queue, and the deployment topics that rarely get benchmarked.
 
 A single self-contained `index.html`. No build step, no dependencies: GitHub Pages
 serves the file as-is (`.nojekyll` keeps Jekyll out of the way).
@@ -10,7 +13,8 @@ serves the file as-is (`.nojekyll` keeps Jekyll out of the way).
 | Topic | Status | Site |
 |---|---|---|
 | Computer Vision — Inference Serving | Live | [computer_vision_optimization](https://sadbodhs.github.io/computer_vision_optimization/) |
-| Language & Multimodal Models | In preparation | — |
+| Vision-Language Models | In preparation | — |
+| VLA for Robotics | In preparation | — |
 | Training & Fine-tuning | In preparation | — |
 | Deployment & MLOps | In preparation | — |
 
@@ -25,6 +29,15 @@ pattern used by the CV card: status pill, title, `sub` line for the hardware and
 a description, a `finding` blockquote, three headline `stat` figures, tags, and the link.
 
 Then update the `count` in the section header.
+
+## The other sections
+
+- **`#bench`** — the open question queue. Each `<li>` is a status chip (`design` /
+  `queued` / `blocked`), a question, and why it matters. Nothing here may claim a
+  number; move an item into a topic study once it has one.
+- **`#gaps`** — "Things nobody benchmarks". A numbered grid of under-covered topics,
+  mostly deployment and measurement-integrity ones.
+- **House rules** — the bar a number has to clear before it gets published.
 
 ## Local preview
 
