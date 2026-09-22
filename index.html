@@ -245,7 +245,7 @@ a.art:hover .rtitle{color:var(--accent)}
   <section class="sec" id="topics">
     <div class="shd">
       <span class="no">1</span><h2>Topics</h2>
-      <span class="rule"></span><span class="meta">01 live · 04 in preparation</span>
+      <span class="rule"></span><span class="meta">02 live · 03 in preparation</span>
     </div>
     <p class="intro">Each topic is its own repository and its own site, with the harness and the raw
       results committed next to the findings.</p>
@@ -268,13 +268,25 @@ a.art:hover .rtitle{color:var(--accent)}
       <span class="rgo">Read the study →</span>
     </a>
 
-    <div class="art">
-      <div class="lead"><span class="state off">In prep</span>
-        <h3 class="rtitle">Vision-Language Models</h3></div>
+    <a class="art" href="https://github.com/sadbodhs/vlm_inference_optimization" rel="noopener">
+      <div class="lead"><span class="state on">Live</span>
+        <h3 class="rtitle">Vision-Language Models — Serving &amp; Token Budget</h3></div>
+      <p class="rsub">Qwen2.5-VL-7B-AWQ · vLLM · RTX 3090 · DocVQA and live RTSP</p>
       <p>Two engines in one model: a compute-bound encoder bolted to a memory-bandwidth-bound
-        decoder. The image is not one frame, it is N tokens — and N is a policy decision. The
-        deliverable is a latency × accuracy frontier, not a winner.</p>
-    </div>
+        decoder. The image is not one frame, it is N tokens — and N is a policy decision. Five
+        experiments: decode against the bandwidth roofline, what a vision token costs in
+        time-to-first-token, the accuracy frontier as the token budget falls, saturation on real
+        document pages, and how many live camera streams one card can understand.</p>
+      <p class="pull">Past the knee, throughput <em>rises</em> 70% while every answer describes a
+        frame 26 seconds old. Raw request rate calls that an improvement.</p>
+      <div class="figs">
+        <div class="fig"><div class="v">74<i>%</i></div><div class="k">TTFT cut for 1.2 ANLS points</div></div>
+        <div class="fig"><div class="v">92.7<i>%</i></div><div class="k">Decode vs bandwidth limit</div></div>
+        <div class="fig"><div class="v">8</div><div class="k">Live RTSP streams at 1 fps</div></div>
+      </div>
+      <div class="chips"><i>Qwen2.5-VL</i><i>vLLM</i><i>AWQ W4A16</i><i>DocVQA / ANLS</i><i>RTSP</i><i>staleness</i></div>
+      <span class="rgo">Read the study →</span>
+    </a>
 
     <div class="art">
       <div class="lead"><span class="state off">In prep</span>
@@ -303,11 +315,12 @@ a.art:hover .rtitle{color:var(--accent)}
   <section class="sec" id="bench">
     <div class="shd">
       <span class="no">2</span><h2>On the bench</h2>
-      <span class="rule"></span><span class="meta">06 open</span>
+      <span class="rule"></span><span class="meta">05 open · 01 half measured</span>
     </div>
-    <p class="intro">The queue, in the open. These are unanswered — no numbers are claimed for
-      anything on this list. Some are next up; some are blocked on a harness that cannot yet measure
-      them honestly.</p>
+    <p class="intro">The queue, in the open. Most of these are unanswered and claim no numbers.
+      Some are next up; some are blocked on a harness that cannot yet measure them honestly. Where
+      one has been partly measured, the measured half says so and the open half stays open —
+      a question is not closed because the easy side of it fell over.</p>
 
     <div class="q">
       <div class="st a">Next up</div>
@@ -320,12 +333,17 @@ a.art:hover .rtitle{color:var(--accent)}
       </div>
     </div>
     <div class="q">
-      <div class="st a">In design</div>
+      <div class="st a">Half measured</div>
       <div>
         <h3>How far can vision tokens be cut before the answer falls off a cliff?</h3>
         <p>Prefill cost scales with token count, and token count is a free variable. The hypothesis
           is that natural-image VQA tolerates aggressive pruning and document VQA does not — so the
           honest output is a per-task frontier rather than one number.</p>
+        <p><strong>Documents: answered.</strong> DocVQA accuracy saturates at roughly 1,000 vision
+          tokens — past that, 4× the budget buys +0.011 ANLS with a confidence interval straddling
+          zero. Below ~600 tokens it falls off properly: 0.914 → 0.777. <strong>Natural images:
+          still open</strong>, and that is the half the hypothesis actually rests on. Until ChartQA
+          and a natural-image set are run, the per-task contrast is asserted, not measured.</p>
       </div>
     </div>
     <div class="q">
