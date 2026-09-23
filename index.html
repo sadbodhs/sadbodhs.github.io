@@ -315,7 +315,7 @@ a.art:hover .rtitle{color:var(--accent)}
   <section class="sec" id="bench">
     <div class="shd">
       <span class="no">2</span><h2>On the bench</h2>
-      <span class="rule"></span><span class="meta">05 open · 01 half measured</span>
+      <span class="rule"></span><span class="meta">05 open · 01 answered</span>
     </div>
     <p class="intro">The queue, in the open. Most of these are unanswered and claim no numbers.
       Some are next up; some are blocked on a harness that cannot yet measure them honestly. Where
@@ -333,17 +333,20 @@ a.art:hover .rtitle{color:var(--accent)}
       </div>
     </div>
     <div class="q">
-      <div class="st a">Half measured</div>
+      <div class="st a">Answered</div>
       <div>
         <h3>How far can vision tokens be cut before the answer falls off a cliff?</h3>
         <p>Prefill cost scales with token count, and token count is a free variable. The hypothesis
-          is that natural-image VQA tolerates aggressive pruning and document VQA does not — so the
+          was that natural-image VQA tolerates aggressive pruning and document VQA does not — so the
           honest output is a per-task frontier rather than one number.</p>
-        <p><strong>Documents: answered.</strong> DocVQA accuracy saturates at roughly 1,000 vision
-          tokens — past that, 4× the budget buys +0.011 ANLS with a confidence interval straddling
-          zero. Below ~600 tokens it falls off properly: 0.914 → 0.777. <strong>Natural images:
-          still open</strong>, and that is the half the hypothesis actually rests on. Until ChartQA
-          and a natural-image set are run, the per-task contrast is asserted, not measured.</p>
+        <p><strong>It holds, for a different reason than predicted.</strong> At ~100 vision tokens,
+          VQAv2 (no text at all) keeps <strong>91%</strong> of its peak accuracy [87, 95]; scene
+          text (TextVQA) keeps 60%; charts and documents keep about a third. DocVQA needs ~1,000
+          tokens to saturate, ChartQA 577. The first attempt used TextVQA as the "natural image" arm
+          and got the order wrong — it is still a reading task. What governs the budget is not the
+          image category but <em>the size of the smallest feature that carries the answer</em>.
+          Not yet tested: high-resolution appearance tasks (small, distant objects), which that rule
+          predicts behave like reading. <a href="https://sadbodhs.github.io/vlm_inference_optimization/task-frontier/">The per-task frontier &rarr;</a></p>
       </div>
     </div>
     <div class="q">
