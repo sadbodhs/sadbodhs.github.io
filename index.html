@@ -315,7 +315,7 @@ a.art:hover .rtitle{color:var(--accent)}
   <section class="sec" id="bench">
     <div class="shd">
       <span class="no">2</span><h2>On the bench</h2>
-      <span class="rule"></span><span class="meta">05 open · 01 answered</span>
+      <span class="rule"></span><span class="meta">04 open · 01 half measured · 01 answered</span>
     </div>
     <p class="intro">The queue, in the open. Most of these are unanswered and claim no numbers.
       Some are next up; some are blocked on a harness that cannot yet measure them honestly. Where
@@ -323,13 +323,23 @@ a.art:hover .rtitle{color:var(--accent)}
       a question is not closed because the easy side of it fell over.</p>
 
     <div class="q">
-      <div class="st a">Next up</div>
+      <div class="st a">Half measured</div>
       <div>
         <h3>Do application-level tricks dwarf everything in the serving layer?</h3>
         <p>Detect every N frames and track between them, tile the ROI for small objects, cascade a
           cheap detector into an expensive classifier. These routinely beat every serving
-          optimization I have measured <em>by an order of magnitude</em> — and not one of them is
-          measured yet. This is the largest gap in the CV study.</p>
+          optimization I have measured <em>by an order of magnitude</em>. Until the cascade below,
+          not one of them had been measured. This is the largest gap in the CV study.</p>
+        <p><strong>Half measured: yes &mdash; but by 2&ndash;4&times;, not an order of magnitude.</strong> On two hours of MEVA
+          surveillance video, a YOLO gate in front of a 7B VLM <strong>doubles the cameras one
+          3090 can watch</strong> (1.8 &rarr; 4.1; 7.1 with ROI crops), keeps 97&ndash;99% of annotated
+          activities in view, and costs about one point of recognition &mdash; against serving-layer
+          wins of a few to tens of percent. The savings belong to the scene: 98% of calls on an
+          empty camera, 12&ndash;15% on a busy one. Two surprises: the detector is a quarter of
+          each camera&rsquo;s GPU budget in PyTorch, and the weak link is the VLM, which sees
+          doorways and car doors but not phones or conversations at that distance. Still open:
+          detect-then-track and ROI tiling on the CV side.
+          <a href="https://sadbodhs.github.io/vlm_inference_optimization/e7-cascade/">The cascade &rarr;</a></p>
       </div>
     </div>
     <div class="q">
