@@ -338,7 +338,10 @@ a.art:hover .rtitle{color:var(--accent)}
           empty camera, 12&ndash;15% on a busy one. Three surprises: a Poisson capacity model
           undercounted the camera fleet by more than 2&times;; the detector competes with the VLM
           for the GPU, so TensorRT buys two cameras; and the weak link is the VLM, which sees
-          doorways and car doors but not phones or conversations at that distance. Still open:
+          doorways and car doors but not phones or conversations at that distance. Rebuilt the
+          industry way &mdash; DeepStream, a batched detector and a tracker &mdash; the CV side stops
+          competing for the GPU, which buys one more camera and leaves the VLM as the only limit.
+          Still open:
           detect-then-track and ROI tiling on the CV side.
           <a href="https://sadbodhs.github.io/vlm_inference_optimization/e7b-live/">The live cascade &rarr;</a></p>
       </div>
